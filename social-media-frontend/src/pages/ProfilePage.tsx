@@ -1,0 +1,154 @@
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router';
+import { fetchAPI } from '../api/api';
+import '../css/ProfilePage.css';
+import CreatePost from '../components/CreatePost';
+import PostCard from '../components/PostCard';
+
+interface UserProfile {
+  username: string;
+  bio?: string;
+  followersCount: number;
+  followingCount: number;
+  postsCount: number;
+  isFollowing?: boolean;
+  avatarUrl?: string;
+}
+
+interface Post {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: string;
+  imageUrl?: string;
+  user: { username: string; avatarUrl?: string };
+  likesCount: number;
+  isLiked: boolean;
+}
+
+const ProfilePage: React.FC = () => {
+  const { username } = useParams();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [error, setError] = useState('');
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [bio, setBio] = useState('');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+
+  const currentUser = localStorage.getItem('username') || '';
+
+  const loadProfile = async () => {
+    try {
+      const userData = username
+        ? await fetchAPI<UserProfile>(`/users/${username}`)
+        : await fetchAPI<UserProfile>(`/users/me`);
+      setProfile(userData);
+      setBio(userData.bio || '');
+
+     
+      const userPosts = await fetchAPI<Post[]>(
+        `/posts/user/${username || userData.username}?currentUser=${currentUser}`
+      );
+      setPosts(userPosts);
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  useEffect(() => {
+    loadProfile();
+  }, [username]);
+
+  const handleFollow = async () => {
+    if (!profile) return;
+    try {
+      if (profile.isFollowing) {
+        await fetchAPI(`/users/${profile.username}/unfollow`, { method: 'DELETE' });
+      } else {
+        await fetchAPI(`/users/${profile.username}/follow`, { method: 'POST' });
+      }
+      loadProfile();
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    try {
+      await fetchAPI(`/users/profile`, { method: 'PUT', body: JSON.stringify({ bio }) });
+      setIsEditingProfile(false);
+      loadProfile();
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  if (error) return <p style={{ color: 'red' }}>{error}</p>;
+  if (!profile) return <p>Loading...</p>;
+
+  return (
+    <div className="profile-page">
+      <div className="profile-header">
+        <img className="avatar" src={profile.avatarUrl || '/avtar.png'} alt={profile.username} />
+        <div className="profile-info">
+          <div className="username-row">
+            <h2>@{profile.username}</h2>
+            {!username && <button onClick={() => setIsEditingProfile(true)}>Edit Profile</button>}
+            {username && username !== 'me' && (
+              <button onClick={handleFollow}>{profile.isFollowing ? 'Unfollow' : 'Follow'}</button>
+            )}
+          </div>
+
+          {isEditingProfile ? (
+            <div className="bio-edit">
+              <textarea value={bio} onChange={(e) => setBio(e.target.value)} />
+              <button onClick={handleSaveProfile}>Save</button>
+              <button onClick={() => setIsEditingProfile(false)}>Cancel</button>
+            </div>
+          ) : (
+            <p className="bio">{profile.bio || 'No bio yet.'}</p>
+          )}
+
+<div className="stats">
+  <div className="stat">
+    <span className="stat-number">{posts.length}</span>
+    <span className="stat-label">Posts</span>
+  </div>
+  <div className="stat">
+    <span className="stat-number">{profile.followersCount}</span>
+    <span className="stat-label">Followers</span>
+  </div>
+  <div className="stat">
+    <span className="stat-number">{profile.followingCount}</span>
+    <span className="stat-label">Following</span>
+  </div>
+</div>
+
+        </div>
+      </div>
+
+    
+      {!username && (
+        <>
+          <div className="floating-add-btn" onClick={() => setShowCreateModal(true)}>
+            +
+          </div>
+          {showCreateModal && <CreatePost onPostCreated={loadProfile} onClose={() => setShowCreateModal(false)} />}
+        </>
+      )}
+
+     
+      <div className="posts-grid">
+        {posts.length === 0 ? (
+          <p>No posts yet.</p>
+        ) : (
+          posts.map((post) => (
+            <PostCard key={post.id} post={post} currentUser={currentUser} onUpdate={loadProfile} />
+          ))
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default ProfilePage;
