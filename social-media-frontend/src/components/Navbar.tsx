@@ -227,6 +227,7 @@ const Navbar: React.FC<NavbarProps> = ({ mode, setMode }) => {
   <div className="notif-modal">
     <div className="modal-content">
       <h4>Notifications</h4>
+      <div className="notif-list-wrapper">
       {notifications.length === 0 ? (
         <div className="notif-item">No notifications</div>
       ) : (
@@ -269,7 +270,8 @@ const Navbar: React.FC<NavbarProps> = ({ mode, setMode }) => {
           </div>
         ))
       )}
-      <button onClick={() => setNotifOpen(false)}>Close</button>
+      </div>
+      <button className="modal-close-btn" onClick={() => setNotifOpen(false)}>Close</button>
     </div>
   </div>
 )}
