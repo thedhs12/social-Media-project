@@ -1,4 +1,5 @@
 
+import { FollowRequest } from 'src/follow-request/follow-request.entity';
 import { Follow } from 'src/follows/follows.entity';
 import { Like } from 'src/likes/likes.entity';
 import { Notification } from 'src/notifications/notifications.entity';
@@ -19,6 +20,10 @@ export class User{
   @Column({type:'text',nullable:true})
   bio?:string | null;
 
+  @Column({default:false})
+  isPrivate:boolean;
+
+
   @CreateDateColumn()
   createdAt:Date;
 
@@ -36,5 +41,9 @@ export class User{
 
   @OneToMany(()=>Notification,(notification)=>notification.recipient)
   notifications:Notification[];
+
+  @OneToMany(() => FollowRequest, (request) => request.toUser)
+followRequests: FollowRequest[];
+
 }
 

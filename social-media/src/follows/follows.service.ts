@@ -8,12 +8,14 @@ import { Follow } from './follows.entity';
 import { Repository } from 'typeorm';
 import { User } from 'src/users/users.entity';
 import { NotificationsService } from 'src/notifications/notifications.service';
+import { FollowRequest } from 'src/follow-request/follow-request.entity';
 
 @Injectable()
 export class FollowsService {
   constructor(
     @InjectRepository(Follow) private followsRepo: Repository<Follow>,
     @InjectRepository(User) private usersRepo: Repository<User>,
+    @InjectRepository(FollowRequest) private followRequestRepo: Repository<FollowRequest>, 
     private readonly notificationService: NotificationsService,
   ) {}
 
@@ -36,6 +38,30 @@ export class FollowsService {
     });
     if (existing) throw new ConflictException('Already following this user');
 
+   if(following.isPrivate){
+    const existingRequest=await this.followRequestRepo.findOne({
+      where: { fromUser: { id: followerId }, toUser: { id: following.id }, status: 'PENDING' },
+    });
+
+    if (existingRequest) throw new ConflictException('Follow request already sent');
+    const request = this.followRequestRepo.create({
+      fromUser: follower,
+      toUser: following,
+    });
+    await this.followRequestRepo.save(request);
+
+    await this.notificationService.createNotification(
+      following,
+      'FOLLOW_REQUEST',
+      follower,
+      undefined,
+      request,
+    );
+
+    return { message: 'Follow request sent', request };
+   }
+
+
     const follow = this.followsRepo.create({
       follower,   
       following,
@@ -51,6 +77,8 @@ export class FollowsService {
 
     return follow;
   }
+
+  
 
   async isFollowing(followerId: string, username: string) {
     const following = await this.usersRepo.findOne({ where: { username } });

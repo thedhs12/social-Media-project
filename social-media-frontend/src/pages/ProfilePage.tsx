@@ -4,6 +4,7 @@ import { fetchAPI } from '../api/api';
 import '../css/ProfilePage.css';
 import CreatePost from '../components/CreatePost';
 import PostCard from '../components/PostCard';
+import '../css/CommentSection.css'
 
 interface UserProfile {
   username: string;
@@ -12,7 +13,9 @@ interface UserProfile {
   followingCount: number;
   postsCount: number;
   isFollowing?: boolean;
+  isPrivate?: boolean;
   avatarUrl?: string;
+  hasRequestPending?: boolean;
 }
 
 interface Post {
@@ -24,6 +27,7 @@ interface Post {
   user: { username: string; avatarUrl?: string };
   likesCount: number;
   isLiked: boolean;
+  commentsCount: number;
 }
 
 const ProfilePage: React.FC = () => {
@@ -34,22 +38,29 @@ const ProfilePage: React.FC = () => {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [bio, setBio] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(false);
 
   const currentUser = localStorage.getItem('username') || '';
 
   const loadProfile = async () => {
     try {
       const userData = username
-        ? await fetchAPI<UserProfile>(`/users/${username}`)
+        ? await fetchAPI<UserProfile>(`/users/${username}/details`)
         : await fetchAPI<UserProfile>(`/users/me`);
       setProfile(userData);
       setBio(userData.bio || '');
+      setIsPrivate(userData.isPrivate || false);
 
-     
       const userPosts = await fetchAPI<Post[]>(
         `/posts/user/${username || userData.username}?currentUser=${currentUser}`
       );
-      setPosts(userPosts);
+      const postsWithComments = await Promise.all(
+      userPosts.map(async(p) => {
+        const comments = await fetchAPI<{ id: string; content: string }[]>(`/posts/${p.id}/comments`);
+        return { ...p, commentsCount: comments.length };
+      }));
+
+      setPosts(postsWithComments);
     } catch (err: any) {
       setError(err.message);
     }
@@ -64,8 +75,17 @@ const ProfilePage: React.FC = () => {
     try {
       if (profile.isFollowing) {
         await fetchAPI(`/users/${profile.username}/unfollow`, { method: 'DELETE' });
+        setError('Unfollowed successfully');
+      } else if (profile.hasRequestPending) {
+        await fetchAPI(`/follow-requests/cancel/${profile.username}`, { method: 'DELETE' });
+        setError('Follow request cancelled');
       } else {
-        await fetchAPI(`/users/${profile.username}/follow`, { method: 'POST' });
+        const response = await fetchAPI<{ message: string }>(`/users/${profile.username}/follow`, { method: 'POST' });
+        if (response.message === 'Follow request sent') {
+          setError('Follow request sent successfully');
+        } else {
+          setError('Now following this user');
+        }
       }
       loadProfile();
     } catch (err: any) {
@@ -92,10 +112,46 @@ const ProfilePage: React.FC = () => {
         <img className="avatar" src={profile.avatarUrl || '/avtar.png'} alt={profile.username} />
         <div className="profile-info">
           <div className="username-row">
-            <h2>@{profile.username}</h2>
+          <h2>@{profile.username}</h2>
+          {!username && (
+  <button
+    className="privacy-toggle-btn"
+    onClick={async () => {
+      try {
+        const newPrivacy = !isPrivate;
+        await fetchAPI(`/users/profile/privacy`, {
+          method: 'PUT',
+          body: JSON.stringify({ isPrivate: newPrivacy }),
+        });
+        setIsPrivate(newPrivacy);
+      } catch (err: any) {
+        alert(err.message);
+      }
+    }}
+  >
+    {isPrivate ? 'Make Profile Public' : 'Make Profile Private'}
+  </button>
+)}
+
+           
             {!username && <button onClick={() => setIsEditingProfile(true)}>Edit Profile</button>}
             {username && username !== 'me' && (
-              <button onClick={handleFollow}>{profile.isFollowing ? 'Unfollow' : 'Follow'}</button>
+              <button 
+                className={
+                  profile.isFollowing 
+                    ? 'unfollow-btn' 
+                    : profile.hasRequestPending 
+                      ? 'requested-btn' 
+                      : 'follow-btn'
+                }
+                onClick={handleFollow}
+              >
+                {profile.isFollowing 
+                  ? 'Unfollow' 
+                  : profile.hasRequestPending 
+                    ? 'Requested' 
+                    : 'Follow'}
+              </button>
             )}
           </div>
 
@@ -109,44 +165,48 @@ const ProfilePage: React.FC = () => {
             <p className="bio">{profile.bio || 'No bio yet.'}</p>
           )}
 
-<div className="stats">
-  <div className="stat">
-    <span className="stat-number">{posts.length}</span>
-    <span className="stat-label">Posts</span>
-  </div>
-  <div className="stat">
-    <span className="stat-number">{profile.followersCount}</span>
-    <span className="stat-label">Followers</span>
-  </div>
-  <div className="stat">
-    <span className="stat-number">{profile.followingCount}</span>
-    <span className="stat-label">Following</span>
-  </div>
-</div>
-
+          <div className="stats">
+            <div className="stat">
+              <span className="stat-number">{posts.length}</span>
+              <span className="stat-label">Posts</span>
+            </div>
+            <div className="stat">
+              <span className="stat-number">{profile.followersCount}</span>
+              <span className="stat-label">Followers</span>
+            </div>
+            <div className="stat">
+              <span className="stat-number">{profile.followingCount}</span>
+              <span className="stat-label">Following</span>
+            </div>
+          </div>
         </div>
       </div>
 
-    
       {!username && (
         <>
-          <div className="floating-add-btn" onClick={() => setShowCreateModal(true)}>
-            +
-          </div>
-          {showCreateModal && <CreatePost onPostCreated={loadProfile} onClose={() => setShowCreateModal(false)} />}
+          <div className="floating-add-btn" onClick={() => setShowCreateModal(true)}>+</div>
+          {showCreateModal && (
+            <CreatePost onPostCreated={loadProfile} onClose={() => setShowCreateModal(false)} />
+          )}
         </>
       )}
 
-     
-      <div className="posts-grid">
-        {posts.length === 0 ? (
-          <p>No posts yet.</p>
-        ) : (
-          posts.map((post) => (
-            <PostCard key={post.id} post={post} currentUser={currentUser} onUpdate={loadProfile} />
-          ))
-        )}
-      </div>
+<div className="posts-grid">
+  {profile.isPrivate && username && !profile.isFollowing ? (
+    <p>This account is private. Follow to see posts.</p>
+  ) : posts.length === 0 ? (
+    <p>No posts yet.</p>
+  ) : (
+    posts.map((post) => (
+      <PostCard
+        key={post.id}
+        post={post}
+        currentUser={currentUser}
+        onUpdate={loadProfile}
+      />
+    ))
+  )}
+</div>
     </div>
   );
 };

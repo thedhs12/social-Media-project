@@ -1,0 +1,68 @@
+.search-page {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  color: #262626;
+}
+
+.search-page h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.error {
+  color: red;
+  margin-bottom: 10px;
+}
+
+.search-users {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.search-user-card {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  padding: 8px 10px;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+  color: inherit;
+}
+
+.search-user-card:hover {
+  background-color: #efefef;
+}
+
+.search-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 12px;
+  border: 1px solid #ddd;
+}
+
+.search-user-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.search-user-info strong {
+  font-size: 16px;
+}
+
+@media (max-width: 480px) {
+  .search-avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .search-user-info strong {
+    font-size: 14px;
+  }
+}

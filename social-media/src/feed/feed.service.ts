@@ -1,6 +1,7 @@
-// src/feed/feed.service.ts
+
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Comment } from 'src/comments/comments.entity';
 import { Follow } from 'src/follows/follows.entity';
 import { Post } from 'src/posts/posts.entity';
 import { Repository, In } from 'typeorm';
@@ -10,6 +11,7 @@ export class FeedService {
   constructor(
     @InjectRepository(Post) private postsRepo: Repository<Post>,
     @InjectRepository(Follow) private followsRepo: Repository<Follow>,
+    @InjectRepository(Comment) private commentsRepo: Repository<Comment>,
   ) {}
 
   async getUserFeed(userId: string, page = 1, limit = 10, mode: 'all' | 'following' = 'all') {
@@ -50,7 +52,7 @@ export class FeedService {
       });
     }
 
-    const mapped = posts.map((post) => ({
+    const mapped = await Promise.all(posts.map(async post => ({
       id: post.id,
       title: post.title,
       content: post.content,
@@ -59,11 +61,11 @@ export class FeedService {
         username: post.user?.username ?? 'unknown',
       },
       likesCount: post.likes?.length ?? 0,
-      // compute whether the *requesting* user already liked this post
       isLiked: post.likes?.some((l) => l.user?.id === userId) ?? false,
+      commentsCount: await this.commentsRepo.count({ where: { post: { id: post.id } } }),
       createdAt: post.createdAt,
       updatedAt: post.updatedAt,
-    }));
+    })));
 
     return {
       posts: mapped,

@@ -6,6 +6,10 @@ import LoginPage from './pages/LoginPage'
 import Navbar from './components/Navbar'
 import FeedPage from './pages/FeedPage'
 import ProfilePage from './pages/ProfilePage'
+import SearchPage from './pages/SearchPage'
+import UserProfile from './components/UserProfile'
+import PostPage from './pages/PostPage'
+
 
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
@@ -26,13 +30,18 @@ const App: React.FC = () => {
         <Navbar mode={mode} setMode={setMode} />
         <Routes>
         <Route path="/" element={isAuthenticated ? <FeedPage mode={mode} /> : <Navigate to="/login" />} />
-        <Route path="/profile/:username" element={<ProfilePage />} />
+        <Route path="/profile/:username" element={<UserProfile />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/posts/:id" element={<PostPage />} />  
           <Route
             path="/login"
-            element={<LoginPage onLogin={() => setIsAuthenticated(true)} />}
+            element={<LoginPage onLogin={() => {setIsAuthenticated(true); 
+                                              setMode("all")}} />}
           />
           <Route path='/register' element={<RegisterPage />} />
+          <Route path="/search" element={<SearchPage />} />
+        
+       
         </Routes>
       </BrowserRouter>
     </>

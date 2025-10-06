@@ -1,10 +1,16 @@
-
 .profile-page {
   max-width: 900px;
   margin: 0 auto;
   padding: 20px;
   font-family: Arial, sans-serif;
   box-sizing: border-box;
+
+  position: relative;
+}
+.profile-page::after {
+  content: "";
+  display: table;
+  clear: both;
 }
 
 .profile-header {
@@ -12,6 +18,9 @@
   gap: 30px;
   align-items: center;
   margin-bottom: 30px;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
 }
 
 .avatar {
@@ -24,17 +33,20 @@
 
 .profile-info {
   flex: 1;
+  min-width: 200px;
 }
 
 .username-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   margin-bottom: 10px;
+  /* flex-wrap: wrap; */
 }
 
 .username-row h2 {
-  font-size: 28px;
+  font-size: 20px;
+  font-weight: bold;
   margin: 0;
 }
 
@@ -47,6 +59,7 @@
   display: flex;
   gap: 40px;
   margin-top: 10px;
+  flex-wrap: wrap;
 }
 
 .stat {
@@ -65,14 +78,15 @@
   color: #8e8e8e;
 }
 
-
 .posts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 16px;
-  margin-top: 24px;
-}
+  margin-top: 30px;
 
+  position: relative;
+  z-index: 0;
+}
 
 .floating-add-btn {
   position: fixed;
@@ -90,30 +104,30 @@
   cursor: pointer;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
   z-index: 1000;
+  transition: background-color 0.2s ease;
 }
 
 .floating-add-btn:hover {
   background-color: #007ac1;
 }
 
-
 .post-card {
-  position: relative;
+  position:relative;
   background-color: white;
   border: 1px solid #dbdbdb;
   border-radius: 8px;
   margin-bottom: 20px;
   box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-  padding: 16px;
+  padding: 6px;
   font-family: 'Arial', sans-serif;
 }
-
 
 .post-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
+  flex-wrap: wrap;
 }
 
 .post-user {
@@ -121,7 +135,6 @@
   font-size: 15px;
   color: #262626;
 }
-
 
 .options-wrapper {
   position: relative;
@@ -164,9 +177,6 @@
   cursor: pointer;
   color: #262626;
 }
-.options-icon:focus {
-  outline: none;  
-}
 
 .options-dropdown button:hover {
   background-color: #f5f5f5;
@@ -184,13 +194,28 @@
   line-height: 1.5;
   margin-bottom: 12px;
   color: #333;
+  position: relative;
+}
+.post-card::after {
+  content: "";
+  display: table;
+  clear: both;
 }
 
+.post-date {
+  font-size: 11px;
+  color: #8e8e8e;
+  margin-top: 2px;
+  margin-bottom: 5px;
+  display: block;
+  letter-spacing: 0.5px;
+}
 
 .post-actions {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .like-button {
@@ -229,7 +254,6 @@
   color: #737373;
 }
 
-
 .edit-post input,
 .edit-post textarea {
   width: 100%;
@@ -249,6 +273,7 @@
   cursor: pointer;
   font-weight: 600;
   margin-right: 8px;
+  transition: background-color 0.2s ease;
 }
 
 .edit-post button:hover {
@@ -265,14 +290,378 @@
 }
 
 
+.comment-icon-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 15px 10px 15px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.comment-icon-btn {
+  font-size: 18px;
+  color: #555;
+  transition: transform 0.2s;
+}
+
+.comment-icon-container:hover .comment-icon-btn {
+  transform: scale(1.2);
+}
+
+.comment-count {
+  font-size: 14px;
+  color: #333;
+}
+
+@media (max-width: 1024px) {
+  .posts-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+  .profile-header {
+    gap: 20px;
+  }
+  .username-row h2 {
+    font-size: 24px;
+  }
+}
+
 @media (max-width: 768px) {
   .posts-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+  .avatar {
+    width: 120px;
+    height: 120px;
+  }
+  .username-row h2 {
+    font-size: 22px;
+  }
+  .bio {
+    font-size: 14px;
+  }
+  .stats {
+    gap: 25px;
+  }
+  .post-actions {
+    gap: 10px;
   }
 }
 
 @media (max-width: 480px) {
   .posts-grid {
     grid-template-columns: 1fr;
+  }
+  .profile-header {
+    flex-direction: column;
+    align-items: center;
+  }
+  .avatar {
+    width: 100px;
+    height: 100px;
+  }
+  .username-row h2 {
+    font-size: 20px;
+    text-align: center;
+  }
+  .stats {
+    justify-content: center;
+    gap: 20px;
+  }
+  .bio {
+    text-align: center;
+    font-size: 13px;
+  }
+  .floating-add-btn {
+    width: 45px;
+    height: 45px;
+    font-size: 24px;
+  }
+}
+@media (min-width: 600px) and (max-width: 1024px) and (orientation: portrait) {
+  .posts-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .avatar {
+    width: 120px;
+    height: 120px;
+  }
+  .username-row h2 {
+    font-size: 22px;
+  }
+  .bio {
+    font-size: 14px;
+    text-align: center;
+  }
+}
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modal-content h2 {
+  margin: 0 0 20px 0;
+  font-size: 24px;
+  color: #262626;
+  text-align: center;
+}
+
+.modal-content input,
+.modal-content textarea {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 16px;
+  border: 1px solid #dbdbdb;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: Arial, sans-serif;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
+.modal-content input:focus,
+.modal-content textarea:focus {
+  outline: none;
+  border-color: #0095f6;
+  box-shadow: 0 0 0 2px rgba(0, 149, 246, 0.2);
+}
+
+.modal-content textarea {
+  min-height: 100px;
+  max-height: 200px;
+}
+
+.modal-content button {
+  background-color: #0095f6;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  margin-right: 10px;
+  transition: background-color 0.2s ease;
+}
+
+.modal-content button:hover {
+  background-color: #007ac1;
+}
+
+.modal-content button:last-child {
+  background-color: #efefef;
+  color: #262626;
+  margin-right: 0;
+}
+
+.modal-content button:last-child:hover {
+  background-color: #dbdbdb;
+}
+
+.username-row button {
+  background-color: #0095f6;
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+  margin-left: 10px;
+}
+
+.username-row button:hover {
+  background-color: #007ac1;
+}
+
+.bio-edit {
+  background-color: #fafafa;
+  border: 1px solid #dbdbdb;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 10px 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.bio-edit textarea {
+  width: 100%;
+  min-height: 80px;
+  max-height: 150px;
+  padding: 12px;
+  border: 1px solid #dbdbdb;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: Arial, sans-serif;
+  resize: vertical;
+  box-sizing: border-box;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.bio-edit textarea:focus {
+  outline: none;
+  border-color: #0095f6;
+  box-shadow: 0 0 0 2px rgba(0, 149, 246, 0.2);
+}
+
+.bio-edit button {
+  background-color: #0095f6;
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  margin-right: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.bio-edit button:hover {
+  background-color: #007ac1;
+}
+
+.bio-edit button:last-child {
+  background-color: #efefef;
+  color: #262626;
+  margin-right: 0;
+}
+
+.bio-edit button:last-child:hover {
+  background-color: #dbdbdb;
+}
+
+.username-row .follow-btn,
+.username-row .unfollow-btn {
+  background-color: #0095f6;
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  margin-left: 10px;
+  min-width: 80px;
+}
+
+.username-row .follow-btn:hover {
+  background-color: #007ac1;
+}
+
+.username-row .unfollow-btn {
+  background-color: #efefef;
+  color: #262626;
+  border: 1px solid #dbdbdb;
+}
+
+.username-row .unfollow-btn:hover {
+  background-color: #f8f8f8;
+  border-color: #c7c7c7;
+}
+
+.username-row .requested-btn {
+  background-color: #ffd700;
+  color: #333;
+  border: 1px solid #e6c200;
+  cursor: default;
+}
+
+.username-row .requested-btn:hover {
+  background-color: #ffed4e;
+  border-color: #d4af00;
+}
+
+.privacy-toggle-btn {
+  order: 2;
+  background-color: #17a2b8;
+  border: none;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 12px;
+  transition: background-color 0.2s ease;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.privacy-toggle-btn:hover {
+  background-color: #138496;
+}
+
+@media (max-width: 768px) {
+  .username-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .username-row button {
+    margin-left: 0;
+    width: 100%;
+    max-width: 200px;
+  }
+  
+  .bio-edit {
+    padding: 12px;
+  }
+  
+  .bio-edit textarea {
+    min-height: 60px;
+  }
+}
+
+@media (max-width: 480px) {
+  .username-row {
+    align-items: center;
+    text-align: center;
+  }
+  
+  .username-row h2 {
+    margin-bottom: 8px;
+  }
+  
+  .bio-edit button {
+    width: 48%;
+    margin-right: 2%;
+  }
+  
+  .bio-edit button:last-child {
+    margin-right: 0;
   }
 }

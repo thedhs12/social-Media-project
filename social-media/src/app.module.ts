@@ -11,6 +11,7 @@ import { CommentsModule } from './comments/comments.module';
 import { FollowsModule } from './follows/follows.module';
 import { FeedModule } from './feed/feed.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { FollowRequestModule } from './follow-request/follow-request.module';
 
 @Module({
   imports: [
@@ -31,7 +32,7 @@ import { NotificationsModule } from './notifications/notifications.module';
         synchronize: true,
     }),
   }),
-    UsersModule, AuthModule, PostsModule, LikesModule, CommentsModule, FollowsModule, FeedModule, NotificationsModule],
+    UsersModule, AuthModule, PostsModule, LikesModule, CommentsModule, FollowsModule, FeedModule, NotificationsModule, FollowRequestModule],
   controllers: [AppController],
   providers: [AppService],
 })

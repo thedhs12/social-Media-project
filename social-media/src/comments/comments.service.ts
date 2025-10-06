@@ -33,7 +33,7 @@ export class CommentsService {
     const comment = this.commentsRepo.create({
       content: dto.content,
       user,
-      post, 
+      post,
     });
 
     await this.commentsRepo.save(comment);
@@ -47,19 +47,31 @@ export class CommentsService {
       );
     }
 
-    return comment;
+    const commentsCount = await this.commentsRepo.count({ where: { post: { id: postId } } });
+    return { comment, commentsCount };
+  }
+
+  async getCommentsForPost(postId: string) {
+    const comments = await this.commentsRepo.find({
+      where: { post: { id: postId } },
+      relations: ['user'],
+      order: { createdAt: 'DESC' },
+    });
+    return comments;
   }
 
   async remove(commentId: string, userId: string) {
     const comment = await this.commentsRepo.findOne({
       where: { id: commentId },
-      relations: ['user'],
+      relations: ['user', 'post'],
     });
     if (!comment) throw new NotFoundException('Comment not found');
     if (comment.user.id !== userId)
       throw new ForbiddenException('Not allowed to delete this comment');
 
     await this.commentsRepo.remove(comment);
-    return { message: 'Comment deleted successfully' };
+
+    const commentsCount = await this.commentsRepo.count({ where: { post: { id: comment.post.id } } });
+    return { message: 'Comment deleted successfully', commentsCount };
   }
 }

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
-import { FaHeart, FaRegHeart, FaEllipsisH } from "react-icons/fa";
+import { FaHeart, FaRegHeart, FaEllipsisH, FaComment } from "react-icons/fa";
 import { fetchAPI } from "../api/api";
+import CommentSection from "./CommentSection";
 
 export interface Post {
   id: string;
@@ -10,6 +11,7 @@ export interface Post {
   user: { username: string };
   likesCount: number;
   isLiked: boolean;
+  commentsCount: number;
 }
 
 interface PostCardProps {
@@ -26,9 +28,13 @@ const PostCard: React.FC<PostCardProps> = ({ post, currentUser, onUpdate }) => {
   const [editContent, setEditContent] = useState(post.content);
   const [menuOpen, setMenuOpen] = useState(false);
 
+  const [showComments, setShowComments] = useState(false);
+  const [commentsCount, setCommentsCount] = useState(post.commentsCount);
+
+
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Close menu if clicked outside
+ 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -55,7 +61,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, currentUser, onUpdate }) => {
       } else {
         await fetchAPI(`/posts/${post.id}/like`, { method: "POST" });
       }
-      onUpdate();
+      //onUpdate();
     } catch (err) {
       console.error(err);
       setIsLiked(post.isLiked);
@@ -121,7 +127,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, currentUser, onUpdate }) => {
               </div>
             )}
           </div>
-
+    
           <h3 className="post-title">{post.title}</h3>
           <p className="post-content">{post.content}</p>
 
@@ -136,7 +142,23 @@ const PostCard: React.FC<PostCardProps> = ({ post, currentUser, onUpdate }) => {
             <span className="likes-count">
               {likesCount} {likesCount === 1 ? "Like" : "Likes"}
             </span>
-          </div>
+            <div className="comment-icon-container" onClick={() => setShowComments(!showComments)}>
+  <FaComment className="comment-icon-btn" />
+  <span className="comment-count">{commentsCount}</span>
+</div>
+          </div> 
+          <CommentSection
+            postId={post.id}
+            visible={showComments}
+            onCountChange={(count) => setCommentsCount(count)}
+          />
+                <span className="post-date">
+  {new Date(post.createdAt).toLocaleString('en-IN', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  })}
+</span>
         </>
       ) : (
         <div className="edit-post">

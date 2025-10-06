@@ -1,3 +1,4 @@
+import { Comment } from "src/comments/comments.entity";
 import { Like } from "src/likes/likes.entity";
 import { User } from "src/users/users.entity";
 import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
@@ -18,6 +19,10 @@ export class Post{
 
   @OneToMany(()=>Like,(like)=>like.post,{cascade:true})
   likes:Like[];
+
+  @OneToMany(() => Comment, (comment) => comment.post,{cascade:true}) 
+  comments: Comment[];
+
 
   @Column()
   userId:string;

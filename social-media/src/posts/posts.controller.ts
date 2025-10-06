@@ -27,10 +27,10 @@ export class PostsController {
     return this.postsService.create(dto, user.id);
   }
 
- @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.postsService.findOne(id);
+  async findOne(@Param('id') id: string, @GetUser() user: any) {
+    return this.postsService.findOneWithRelations(id, user.id);
   }
   
 

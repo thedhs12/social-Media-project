@@ -10,12 +10,23 @@ export class NotificationsController {
   constructor(private readonly notificationService:NotificationsService){}
 
   @Get()
-  getNotifications(
+  async getNotifications(
     @GetUser() user:User,
     @Query('page') page='1',
     @Query('limit') limit='20',
 ){
-  return this.notificationService.getUserNotification(user.id,Number(limit),Number(page));
+  const result = await this.notificationService.getUserNotification(user.id,Number(limit),Number(page));
+  
+ 
+  const transformedNotifications = result.notifications.map(notification => ({
+    ...notification,
+    followRequestId: notification.followRequest?.id || null,
+  }));
+
+  return {
+    ...result,
+    notifications: transformedNotifications,
+  };
 }
 
 @Patch(':id/read')

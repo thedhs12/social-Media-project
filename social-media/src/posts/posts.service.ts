@@ -16,6 +16,36 @@ export class PostsService {
   return await this.postsRepo.save(post);
  }
 
+ async findOneWithRelations(id: string, currentUserId?: string) {
+  if (!isUuid(id)) throw new NotFoundException(`Post with ID ${id} not found`);
+
+  const post = await this.postsRepo.findOne({
+    where: { id },
+    relations: ['user', 'likes', 'likes.user', 'comments'],
+  });
+
+  if (!post) throw new NotFoundException(`Post with ID ${id} not found`);
+
+  return {
+    id: post.id,
+    title: post.title,
+    content: post.content,
+    author: post.user
+      ? {
+          id: post.user.id,
+          username: post.user.username
+        }
+      : undefined,
+    likesCount: post.likes.length,
+    commentsCount: post.comments.length,
+    isLiked: currentUserId
+      ? post.likes.some(like => like.user.id === currentUserId)
+      : false,
+    createdAt: post.createdAt,
+  };
+}
+
+
  async findOne(id: string) {
 
   if (!isUuid(id)) {
@@ -40,7 +70,6 @@ async findByUsername(username: string, currentUserId: string) {
     title: post.title,
     content: post.content,
     createdAt: post.createdAt,
-    //imageUrl: post.imageUrl,
     likesCount: post.likes.length,
     isLiked: post.likes.some(like => like.user.id === currentUserId), 
     user: {
@@ -79,7 +108,7 @@ async remove(id: string, userId: string) {
   if (post.userId !== userId) {
     throw new ForbiddenException('You are not allowed to delete this post');
   }
-  await this.postsRepo.remove(post);
+  await this.postsRepo.delete(id);
   return {message:'Post deleted successfully'};
 }
 
